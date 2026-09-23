@@ -20,7 +20,6 @@ from app.schemas import (
     OrderInput,
     PredictionResponse,
 )
-
 from src.config import load_config
 from src.data_access import (
     init_prediction_logs,
@@ -30,12 +29,9 @@ from src.logging_config import setup_logging
 from src.predictor import Predictor
 from src.validation import DataValidator
 
-
 config = load_config()
 
-log_path = (
-    Path(config["paths"]["prediction_log"])
-)
+log_path = Path(config["paths"]["prediction_log"])
 
 setup_logging(log_path)
 
@@ -48,9 +44,7 @@ app = FastAPI(
 
 predictor = Predictor(config)
 
-validator = DataValidator(
-    config["validation"]["rules_file"]
-)
+validator = DataValidator(config["validation"]["rules_file"])
 
 request_count = Counter(
     "prediction_requests_total",
@@ -92,9 +86,7 @@ def startup():
     try:
         init_prediction_logs()
     except Exception:
-        logger.exception(
-            "Could not initialize prediction logs"
-        )
+        logger.exception("Could not initialize prediction logs")
 
 
 @app.get("/health")
@@ -129,13 +121,9 @@ def run_prediction(order_dict):
 
     start = time.perf_counter()
 
-    df = pd.DataFrame(
-        [order_dict]
-    )
+    df = pd.DataFrame([order_dict])
 
-    validation_result = validator.validate(
-        df
-    )
+    validation_result = validator.validate(df)
 
     if not validation_result["success"]:
         error_count.inc()
@@ -144,82 +132,45 @@ def run_prediction(order_dict):
             status_code=422,
             detail={
                 "message": "Input validation failed",
-                "details": validation_result[
-                    "failures"
-                ],
+                "details": validation_result["failures"],
             },
         )
 
     try:
-        predictions, probabilities = (
-            predictor.predict(df)
-        )
+        predictions, probabilities = predictor.predict(df)
 
-        predicted_class = int(
-            predictions[0]
-        )
+        predicted_class = int(predictions[0])
 
-        probability = float(
-            probabilities[0]
-        )
+        probability = float(probabilities[0])
 
-        prediction_name = (
-            "late"
-            if predicted_class == 1
-            else "on_time"
-        )
+        prediction_name = "late" if predicted_class == 1 else "on_time"
 
-        elapsed = (
-            time.perf_counter() - start
-        )
+        elapsed = time.perf_counter() - start
 
         latency.observe(elapsed)
 
-        prediction_count.labels(
-            prediction=prediction_name
-        ).inc()
+        prediction_count.labels(prediction=prediction_name).inc()
 
         total_predictions += 1
 
         if predicted_class == 1:
             late_predictions += 1
 
-        current_late_rate = (
-            late_predictions
-            / total_predictions
-        )
+        current_late_rate = late_predictions / total_predictions
 
-        predicted_late_rate.set(
-            current_late_rate
-        )
+        predicted_late_rate.set(current_late_rate)
 
-        drift = abs(
-            current_late_rate
-            - config["monitoring"][
-                "baseline_late_rate"
-            ]
-        )
+        drift = abs(current_late_rate - config["monitoring"]["baseline_late_rate"])
 
-        prediction_drift.set(
-            drift
-        )
+        prediction_drift.set(drift)
 
-        if (
-            drift
-            > config["monitoring"][
-                "prediction_drift_threshold"
-            ]
-        ):
-            logger.warning(
-                "Prediction drift threshold exceeded"
-            )
+        if drift > config["monitoring"]["prediction_drift_threshold"]:
+            logger.warning("Prediction drift threshold exceeded")
 
         output = {
             "prediction": prediction_name,
             "probability": probability,
-            "model_version": (
-                predictor.model_version
-            ),
+            "model_version": (predictor.model_version),
         }
 
         input_data = json.loads(
@@ -230,8 +181,7 @@ def run_prediction(order_dict):
         )
 
         logger.info(
-            "Prediction | input=%s | output=%s | "
-            "latency_ms=%.3f | model_version=%s",
+            "Prediction | input=%s | output=%s | latency_ms=%.3f | model_version=%s",
             input_data,
             output,
             elapsed * 1000,
@@ -243,14 +193,10 @@ def run_prediction(order_dict):
                 input_data=input_data,
                 output_data=output,
                 latency_ms=elapsed * 1000,
-                model_version=(
-                    predictor.model_version
-                ),
+                model_version=(predictor.model_version),
             )
         except Exception:
-            logger.exception(
-                "Failed to store prediction log"
-            )
+            logger.exception("Failed to store prediction log")
 
         return output
 
@@ -260,10 +206,7 @@ def run_prediction(order_dict):
     except Exception as exc:
         error_count.inc()
 
-        logger.exception(
-            "Prediction failed: %s",
-            exc,
-        )
+        logger.exception("Prediction failed")
 
         raise HTTPException(
             status_code=500,
@@ -276,9 +219,7 @@ def run_prediction(order_dict):
     response_model=PredictionResponse,
 )
 def predict(order: OrderInput):
-    return run_prediction(
-        order.model_dump(mode="json")
-    )
+    return run_prediction(order.model_dump(mode="json"))
 
 
 @app.post(
@@ -291,12 +232,6 @@ def predict_batch(
     outputs = []
 
     for order in request.orders:
-        outputs.append(
-            run_prediction(
-                order.model_dump(mode="json")
-            )
-        )
+        outputs.append(run_prediction(order.model_dump(mode="json")))
 
-    return {
-        "predictions": outputs
-    }
+    return {"predictions": outputs}

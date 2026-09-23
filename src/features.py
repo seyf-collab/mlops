@@ -24,17 +24,13 @@ def build_feature_frame(df, config):
     df["purchase_hour"] = df[purchase_datetime].dt.hour
 
     df["estimated_delivery_days"] = (
-        df[estimated_datetime]
-        - df[purchase_datetime]
+        df[estimated_datetime] - df[purchase_datetime]
     ).dt.total_seconds() / (24 * 60 * 60)
 
     numerical_features = config["features"]["numerical"]
     categorical_features = config["features"]["categorical"]
 
-    feature_columns = (
-        numerical_features
-        + categorical_features
-    )
+    feature_columns = numerical_features + categorical_features
 
     return df[feature_columns]
 
@@ -54,21 +50,15 @@ def transform_features(
     numerical_features = config["features"]["numerical"]
     categorical_features = config["features"]["categorical"]
 
-    numeric = numeric_imputer.transform(
-        feature_df[numerical_features]
-    )
+    numeric = numeric_imputer.transform(feature_df[numerical_features])
 
     categorical_imputed = categorical_imputer.transform(
         feature_df[categorical_features]
     )
 
-    categorical = encoder.transform(
-        categorical_imputed
-    )
+    categorical = encoder.transform(categorical_imputed)
 
-    numeric_sparse = sparse.csr_matrix(
-        numeric
-    )
+    numeric_sparse = sparse.csr_matrix(numeric)
 
     return sparse.hstack(
         [numeric_sparse, categorical],

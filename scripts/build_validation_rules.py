@@ -3,20 +3,11 @@ from pathlib import Path
 
 import pandas as pd
 
-
 ROOT_DIR = Path(__file__).resolve().parents[1]
 
-TRAIN_PATH = (
-    ROOT_DIR
-    / "artifacts"
-    / "train.csv"
-)
+TRAIN_PATH = ROOT_DIR / "artifacts" / "train.csv"
 
-OUTPUT_PATH = (
-    ROOT_DIR
-    / "config"
-    / "validation_rules.json"
-)
+OUTPUT_PATH = ROOT_DIR / "config" / "validation_rules.json"
 
 
 NUMERICAL = [
@@ -57,22 +48,14 @@ def main():
             "max": float(train[column].max()),
         }
 
-        rules["missing_rates"][column] = float(
-            train[column].isna().mean()
-        )
+        rules["missing_rates"][column] = float(train[column].isna().mean())
 
     for column in CATEGORICAL:
         rules["allowed_categories"][column] = sorted(
-            train[column]
-            .dropna()
-            .astype(str)
-            .unique()
-            .tolist()
+            train[column].dropna().astype(str).unique().tolist()
         )
 
-        rules["missing_rates"][column] = float(
-            train[column].isna().mean()
-        )
+        rules["missing_rates"][column] = float(train[column].isna().mean())
 
     OUTPUT_PATH.parent.mkdir(
         parents=True,

@@ -14,84 +14,51 @@ class Predictor:
 
         mlflow_uri = config["mlflow"]["tracking_uri"]
 
-        mlflow.set_tracking_uri(
-            mlflow_uri
-        )
+        mlflow.set_tracking_uri(mlflow_uri)
 
-        self.client = MlflowClient(
-            tracking_uri=mlflow_uri
-        )
+        self.client = MlflowClient(tracking_uri=mlflow_uri)
 
         model_name = config["model"]["name"]
-        model_version = str(
-            config["model"]["version"]
-        )
+        model_version = str(config["model"]["version"])
 
-        model_uri = (
-            f"models:/{model_name}/{model_version}"
-        )
+        model_uri = f"models:/{model_name}/{model_version}"
 
-        self.model = mlflow.sklearn.load_model(
-            model_uri
-        )
+        self.model = mlflow.sklearn.load_model(model_uri)
 
         model_info = self.client.get_model_version(
             model_name,
             model_version,
         )
 
-        self.model_version = str(
-            model_info.version
+        self.model_version = str(model_info.version)
+
+        self.model_stage = model_info.current_stage
+
+        cache_dir = Path(tempfile.mkdtemp(prefix="olist_model_"))
+
+        numeric_path = self.client.download_artifacts(
+            model_info.run_id,
+            "inference_artifacts/numeric_imputer.pkl",
+            str(cache_dir),
         )
 
-        self.model_stage = (
-            model_info.current_stage
+        categorical_path = self.client.download_artifacts(
+            model_info.run_id,
+            "inference_artifacts/categorical_imputer.pkl",
+            str(cache_dir),
         )
 
-        cache_dir = Path(
-            tempfile.mkdtemp(
-                prefix="olist_model_"
-            )
+        encoder_path = self.client.download_artifacts(
+            model_info.run_id,
+            "inference_artifacts/onehot_encoder.pkl",
+            str(cache_dir),
         )
 
-        numeric_path = (
-            self.client.download_artifacts(
-                model_info.run_id,
-                "inference_artifacts/"
-                "numeric_imputer.pkl",
-                str(cache_dir),
-            )
-        )
+        self.numeric_imputer = joblib.load(numeric_path)
 
-        categorical_path = (
-            self.client.download_artifacts(
-                model_info.run_id,
-                "inference_artifacts/"
-                "categorical_imputer.pkl",
-                str(cache_dir),
-            )
-        )
+        self.categorical_imputer = joblib.load(categorical_path)
 
-        encoder_path = (
-            self.client.download_artifacts(
-                model_info.run_id,
-                "inference_artifacts/"
-                "onehot_encoder.pkl",
-                str(cache_dir),
-            )
-        )
-
-        self.numeric_imputer = joblib.load(
-            numeric_path
-        )
-
-        self.categorical_imputer = joblib.load(
-            categorical_path
-        )
-
-        self.encoder = joblib.load(
-            encoder_path
-        )
+        self.encoder = joblib.load(encoder_path)
 
     def predict(self, df):
         features = transform_features(
@@ -102,12 +69,8 @@ class Predictor:
             self.encoder,
         )
 
-        probabilities = (
-            self.model.predict_proba(features)
-        )[:, 1]
+        probabilities = (self.model.predict_proba(features))[:, 1]
 
-        predictions = self.model.predict(
-            features
-        )
+        predictions = self.model.predict(features)
 
         return predictions, probabilities

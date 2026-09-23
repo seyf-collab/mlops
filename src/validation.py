@@ -1,5 +1,4 @@
 import json
-from pathlib import Path
 
 import great_expectations as gx
 import great_expectations.expectations as gxe
@@ -14,35 +13,18 @@ class DataValidator:
         ) as file:
             self.rules = json.load(file)
 
-        self.context = gx.get_context(
-            mode="ephemeral"
-        )
+        self.context = gx.get_context(mode="ephemeral")
 
-        self.data_source = (
-            self.context.data_sources.add_pandas(
-                name="inference_source"
-            )
-        )
+        self.data_source = self.context.data_sources.add_pandas(name="inference_source")
 
-        self.data_asset = (
-            self.data_source.add_dataframe_asset(
-                name="inference_data"
-            )
-        )
+        self.data_asset = self.data_source.add_dataframe_asset(name="inference_data")
 
-        self.batch_definition = (
-            self.data_asset
-            .add_batch_definition_whole_dataframe(
-                "inference_batch"
-            )
+        self.batch_definition = self.data_asset.add_batch_definition_whole_dataframe(
+            "inference_batch"
         )
 
     def validate(self, df):
-        batch = self.batch_definition.get_batch(
-            batch_parameters={
-                "dataframe": df
-            }
-        )
+        batch = self.batch_definition.get_batch(batch_parameters={"dataframe": df})
 
         expectations = []
 
@@ -53,9 +35,7 @@ class DataValidator:
             )
         )
 
-        for column, bounds in self.rules[
-            "numeric_ranges"
-        ].items():
+        for column, bounds in self.rules["numeric_ranges"].items():
             expectations.append(
                 gxe.ExpectColumnValuesToBeBetween(
                     column=column,
@@ -65,9 +45,7 @@ class DataValidator:
                 )
             )
 
-        for column, values in self.rules[
-            "allowed_categories"
-        ].items():
+        for column, values in self.rules["allowed_categories"].items():
             expectations.append(
                 gxe.ExpectColumnValuesToBeInSet(
                     column=column,
@@ -76,9 +54,7 @@ class DataValidator:
                 )
             )
 
-        for column, missing_rate in self.rules[
-            "missing_rates"
-        ].items():
+        for column, missing_rate in self.rules["missing_rates"].items():
             mostly = 1.0 - missing_rate
 
             expectations.append(
@@ -97,30 +73,21 @@ class DataValidator:
             if not result.success:
                 failures.append(
                     {
-                        "expectation": type(
-                            expectation
-                        ).__name__,
+                        "expectation": type(expectation).__name__,
                         "column": getattr(
                             expectation,
                             "column",
                             None,
                         ),
-                        "severity": str(
-                            expectation.severity
-                        ),
+                        "severity": str(expectation.severity),
                     }
                 )
 
         critical_failures = [
-            item
-            for item in failures
-            if item["severity"].lower()
-            == "critical"
+            item for item in failures if item["severity"].lower() == "critical"
         ]
 
         return {
-            "success": len(
-                critical_failures
-            ) == 0,
+            "success": len(critical_failures) == 0,
             "failures": failures,
         }

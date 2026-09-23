@@ -20,10 +20,8 @@ def test_prediction_shape():
     df = pd.DataFrame(
         [
             {
-                "order_purchase_timestamp":
-                    "2018-01-01 10:00:00",
-                "order_estimated_delivery_date":
-                    "2018-01-10 00:00:00",
+                "order_purchase_timestamp": "2018-01-01 10:00:00",
+                "order_estimated_delivery_date": "2018-01-10 00:00:00",
                 "customer_zip_code_prefix": 1000,
                 "customer_city": "sao paulo",
                 "customer_state": "SP",
@@ -36,9 +34,7 @@ def test_prediction_shape():
         ]
     )
 
-    predictions, probabilities = (
-        predictor.predict(df)
-    )
+    predictions, probabilities = predictor.predict(df)
 
     assert len(predictions) == 1
     assert len(probabilities) == 1

@@ -23,9 +23,7 @@ def main():
 
     predictor = Predictor(config)
 
-    validator = DataValidator(
-        config["validation"]["rules_file"]
-    )
+    validator = DataValidator(config["validation"]["rules_file"])
 
     with open(
         args.input,
@@ -36,9 +34,7 @@ def main():
 
     df = pd.DataFrame([data])
 
-    validation_result = validator.validate(
-        df
-    )
+    validation_result = validator.validate(df)
 
     if not validation_result["success"]:
         sys.stderr.write(
@@ -49,19 +45,11 @@ def main():
         )
         sys.exit(1)
 
-    predictions, probabilities = (
-        predictor.predict(df)
-    )
+    predictions, probabilities = predictor.predict(df)
 
     output = {
-        "prediction": (
-            "late"
-            if int(predictions[0]) == 1
-            else "on_time"
-        ),
-        "probability": float(
-            probabilities[0]
-        ),
+        "prediction": ("late" if int(predictions[0]) == 1 else "on_time"),
+        "probability": float(probabilities[0]),
         "model_version": predictor.model_version,
     }
 
