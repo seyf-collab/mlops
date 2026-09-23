@@ -1,0 +1,52 @@
+project:
+  name: olist-late-delivery
+
+paths:
+  artifacts_dir: artifacts
+  logs_dir: logs
+  feature_list: artifacts/feature_list.txt
+  numeric_imputer: artifacts/numeric_imputer.pkl
+  categorical_imputer: artifacts/categorical_imputer.pkl
+  onehot_encoder: artifacts/onehot_encoder.pkl
+  prediction_log: logs/predictions.log
+
+features:
+  numerical:
+    - customer_zip_code_prefix
+    - number_of_items
+    - total_price
+    - total_freight
+    - total_payment
+    - max_installments
+    - purchase_year
+    - purchase_month
+    - purchase_dayofweek
+    - purchase_hour
+    - estimated_delivery_days
+
+  categorical:
+    - customer_city
+    - customer_state
+
+  purchase_datetime: order_purchase_timestamp
+  estimated_datetime: order_estimated_delivery_date
+
+model:
+  name: olist-late-delivery-model
+  version: 1
+  stage: Production
+
+mlflow:
+  experiment_name: olist-late-delivery
+  tracking_uri: http://localhost:5000
+
+validation:
+  rules_file: config/validation_rules.json
+
+monitoring:
+  baseline_late_rate: 0.08740375
+  prediction_drift_threshold: 0.10
+
+api:
+  host: 0.0.0.0
+  port: 8000

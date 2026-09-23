@@ -1,0 +1,42 @@
+
+EDA Findings Summary
+
+1. Dataset structure:
+The training dataset contains 69,608 orders and 18 columns.
+
+2. Missing values:
+order_delivered_customer_date has 2,380 missing values (3.42%).
+number_of_items, total_price, and total_freight each have 647 missing values (0.93%).
+total_payment and max_installments each have 1 missing value.
+
+3. Numerical distributions:
+number_of_items, total_price, total_freight, total_payment, and max_installments are positively skewed.
+total_price is strongly right-skewed, with a skewness of approximately 10.49 and a maximum value of 13,440.
+
+4. Categorical variables:
+order_status contains 8 categories.
+customer_state contains 27 states.
+customer_city contains 3,780 unique cities.
+
+5. Relationship with late_delivery:
+The average total_price is 135.33 for on-time orders and 149.87 for late orders.
+Late delivery rates differ across customer states.
+For example, AL has a late delivery rate of 26.52%, while RO has 3.63%.
+
+6. Time-related findings:
+Late delivery rates vary by purchase month.
+March has a late delivery rate of 16.56%, November 13.83%, and February 12.95%.
+The late delivery rate also varies across purchase hours, although most differences are relatively small.
+
+7. Delivery time:
+The average delivery time is 13.83 days.
+For on-time orders, the average delivery time is 11.78 days.
+For late orders, the average delivery time is 34.48 days.
+Delivery time contains high values, with a maximum of 209.63 days.
+
+8. Class imbalance:
+The target is imbalanced, with approximately 92.13% on-time orders and 7.87% late orders.
+
+9. Feature consideration:
+EDA indicates that numerical distributions are skewed, some variables contain missing values, and categorical/time/geographical variables show differences in relation to late_delivery.
+Further feature selection and preprocessing should be handled in the feature engineering step.

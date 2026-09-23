@@ -1,0 +1,29 @@
+
+Model Evaluation Summary
+
+Baseline:
+Accuracy  : 0.9473
+Precision : 0.0000
+Recall    : 0.0000
+F1 Score  : 0.0000
+
+Best Hyperparameter:
+C : 10.0
+
+Validation:
+Accuracy  : 0.6475
+Precision : 0.0948
+Recall    : 0.6654
+F1 Score  : 0.1659
+ROC-AUC   : 0.7099
+
+Final Test:
+Accuracy  : 0.4571
+Precision : 0.0823
+Recall    : 0.7346
+F1 Score  : 0.1479
+ROC-AUC   : 0.5927
+
+Confusion Matrix:
+[[6116 7844]
+ [ 254  703]]
