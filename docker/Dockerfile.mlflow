@@ -1,0 +1,10 @@
+FROM python:3.13-slim
+
+ARG MLFLOW_VERSION
+
+RUN pip install --no-cache-dir \
+    mlflow==${MLFLOW_VERSION}
+
+WORKDIR /mlflow
+
+EXPOSE 5000
